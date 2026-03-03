@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore; 
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
+
+namespace LumenGuard.Api.Controllers{
+    
 [ApiController]
 [RequireHttps]
 public class AuthorizationController : ControllerBase
@@ -75,4 +78,4 @@ public class AuthorizationController : ControllerBase
 
         return Challenge(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
-}
+}}

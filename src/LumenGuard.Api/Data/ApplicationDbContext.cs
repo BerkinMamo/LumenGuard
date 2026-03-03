@@ -3,42 +3,44 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using LumenGuard.Api.Services.Crypto;
 
-namespace LumenGuard.Api.Data;
-
-public class ApplicationDbContext : IdentityDbContext
+namespace LumenGuard.Api.Data
 {
-    private readonly AesVaultProvider _aesProvider;
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, AesVaultProvider aesProvider) 
-        : base(options)
+    public class ApplicationDbContext : IdentityDbContext
     {
-        _aesProvider = aesProvider;
+        private readonly AesVaultProvider _aesProvider;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, AesVaultProvider aesProvider)
+            : base(options)
+        {
+            _aesProvider = aesProvider;
+        }
+
+        public DbSet<VaultSecret> VaultSecrets { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            var encryptionConverter = new ValueConverter<string, string>(
+                v => _aesProvider.Encrypt(v),
+                v => _aesProvider.Decrypt(v)
+            );
+
+
+            builder.Entity<VaultSecret>()
+                .Property(e => e.SecretValue)
+                .HasConversion(encryptionConverter);
+
+
+        }
     }
 
-    public DbSet<VaultSecret> VaultSecrets { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder builder)
+    public class VaultSecret
     {
-        base.OnModelCreating(builder);
-
-        var encryptionConverter = new ValueConverter<string, string>(
-            v => _aesProvider.Encrypt(v), 
-            v => _aesProvider.Decrypt(v) 
-        );
-
-
-        builder.Entity<VaultSecret>()
-            .Property(e => e.SecretValue) 
-            .HasConversion(encryptionConverter);
-            
-
+        public int Id { get; set; }
+        public string SecretName { get; set; }
+        public string SecretValue { get; set; }
     }
-}
-
-
-public class VaultSecret
-{
-    public int Id { get; set; }
-    public string SecretName { get; set; } 
-    public string SecretValue { get; set; } 
 }

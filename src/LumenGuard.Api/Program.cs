@@ -18,7 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-
+builder.Services.AddHttpContextAccessor();
 var hsmService = new HsmService(builder.Configuration);
 builder.Services.AddSingleton(hsmService);
 builder.Services.AddSingleton<AesVaultProvider>();
@@ -75,21 +75,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication(); 
 app.UseAuthorization();
 app.MapControllers();
-// app.MapGet("/api/setup/generate-vault-key", () =>
-// {
-//     byte[] rawAesKey = new byte[32];
-//     System.Security.Cryptography.RandomNumberGenerator.Fill(rawAesKey);
-//     // DİKKAT: BURAYA KENDİ MODULUS DEĞERİNİ YAPIŞTIRMALISIN
-//     var rsaParams = new System.Security.Cryptography.RSAParameters {
-//         Modulus = Convert.FromBase64String("/MSf5HFIaNj2oSoaMB/HZucvSQwLbk521AGT+fYgsNZMTc97OMaX9uVq05zHyc0ytTagqgKSiQ9sf/kW720leVo35kA1EW6FLArrk/krPYMZUsgOJDb4o9/26TvcWFagJuz+MP6Wx8if/F819tNU7xGEUbdPFIn3+a8nGIQVHTraYYqOuOH9quMsWXRcTbXKouKcTc6kTU37I5RG57bKFSf7F3kQGsSJAaU2BE31njJL52FulZeBLgEzRxwNYNRuTydUNIuDk4hqnu+y+8FD5IvaouIElMv7gDwYGHBkh0o+uL3bWNXeYmCyYKn0M1IN2r5690CC++9uc4Y/1Chi7Q=="),
-//         Exponent = Convert.FromBase64String("AQAB")
-//     };
-//     using var rsa = System.Security.Cryptography.RSA.Create();
-//     rsa.ImportParameters(rsaParams);
-//     byte[] encryptedDek = rsa.Encrypt(rawAesKey, System.Security.Cryptography.RSAEncryptionPadding.Pkcs1);
-//     return Results.Ok(new {
-//         Instruction = "Aşağıdaki 'EncryptedDek' değerini kopyalayıp appsettings.json içine yapıştırın.",
-//         EncryptedDek = Convert.ToBase64String(encryptedDek),
-//         Warning = "Bu işlem tamamlandıktan sonra bu endpoint'i Program.cs içinden SİLİN!"
-//     });});
+
 app.Run();
