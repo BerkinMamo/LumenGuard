@@ -1,0 +1,158 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Luvia Vault — Enterprise Security Theme */
+  --vault-midnight: #0B1D33;
+  --vault-surface: #0F2442;
+  --vault-surface-2: #132C50;
+  --vault-border: rgba(160, 174, 192, 0.12);
+  --vault-border-hover: rgba(160, 174, 192, 0.25);
+  --vault-silver: #A0AEC0;
+  --vault-silver-dim: #718096;
+  --vault-accent-blue: #3B82F6;
+  --vault-accent-cyan: #22D3EE;
+  --vault-success: #10B981;
+  --vault-warning: #F59E0B;
+  --vault-danger: #EF4444;
+
+  --background: #0B1D33;
+  --foreground: #E2E8F0;
+  --card: rgba(15, 36, 66, 0.6);
+  --card-foreground: #E2E8F0;
+  --popover: #0F2442;
+  --popover-foreground: #E2E8F0;
+  --primary: #3B82F6;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(160, 174, 192, 0.08);
+  --secondary-foreground: #A0AEC0;
+  --muted: rgba(160, 174, 192, 0.06);
+  --muted-foreground: #718096;
+  --accent: rgba(59, 130, 246, 0.15);
+  --accent-foreground: #93C5FD;
+  --destructive: #EF4444;
+  --destructive-foreground: #FEE2E2;
+  --border: rgba(160, 174, 192, 0.12);
+  --input: rgba(160, 174, 192, 0.08);
+  --ring: rgba(59, 130, 246, 0.4);
+  --radius: 0.5rem;
+
+  --sidebar: #091728;
+  --sidebar-foreground: #A0AEC0;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(59, 130, 246, 0.1);
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: rgba(160, 174, 192, 0.08);
+  --sidebar-ring: rgba(59, 130, 246, 0.4);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+
+  /* Vault custom color tokens */
+  --color-vault-midnight: var(--vault-midnight);
+  --color-vault-surface: var(--vault-surface);
+  --color-vault-surface-2: var(--vault-surface-2);
+  --color-vault-border: var(--vault-border);
+  --color-vault-silver: var(--vault-silver);
+  --color-vault-silver-dim: var(--vault-silver-dim);
+  --color-vault-accent-blue: var(--vault-accent-blue);
+  --color-vault-accent-cyan: var(--vault-accent-cyan);
+  --color-vault-success: var(--vault-success);
+  --color-vault-warning: var(--vault-warning);
+  --color-vault-danger: var(--vault-danger);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--vault-midnight);
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(15, 36, 66, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(160, 174, 192, 0.12);
+  }
+  .glass-card-hover {
+    background: rgba(19, 44, 80, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(160, 174, 192, 0.2);
+  }
+  .text-silver {
+    color: #A0AEC0;
+  }
+  .text-silver-dim {
+    color: #718096;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes counter-tick {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+.counter-tick {
+  animation: counter-tick 0.3s ease-out;
+}
