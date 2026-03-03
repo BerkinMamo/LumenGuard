@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+317254d026d15cc407f758326a5cb48cbc147745")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+542c2ea69d788073217e6ae26125e38d9bdd91d0")]
 [assembly: System.Reflection.AssemblyProductAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

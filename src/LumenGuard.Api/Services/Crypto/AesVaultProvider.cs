@@ -1,26 +1,37 @@
 using System.Security.Cryptography;
 using System.Text;
 using LumenGuard.Api.Services.Hsm;
+using LumenGuard.Api.Data;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 
 namespace LumenGuard.Api.Services.Crypto;
 
 public class AesVaultProvider
 {
-    private readonly byte[] _aesKey;
+    private byte[]? _aesKey;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AesVaultProvider(HsmService hsmService, IConfiguration config)
-{
-    var encryptedDekBase64 = config["HsmConfig:EncryptedDek"];
-    
-    if (string.IsNullOrEmpty(encryptedDekBase64))
+    public AesVaultProvider(
+        HsmService hsmService, 
+        IConfiguration config, 
+        IServiceScopeFactory scopeFactory,
+        IHttpContextAccessor httpContextAccessor)
     {
-        Console.WriteLine(">>> BOOTSTRAP: Encrypted DEK henüz yapılandırılmadı.");
-        return;
-    }
+        _scopeFactory = scopeFactory;
+        _httpContextAccessor = httpContextAccessor;
+        
+        var encryptedDekBase64 = config["HsmConfig:EncryptedDek"];
+        if (string.IsNullOrEmpty(encryptedDekBase64))
+        {
+            Console.WriteLine(">>> BOOTSTRAP: Encrypted DEK henüz yapılandırılmadı.");
+            return;
+        }
 
-    var encryptedDek = Convert.FromBase64String(encryptedDekBase64);
-    _aesKey = hsmService.DecryptData(encryptedDek);
-}
+        var encryptedDek = Convert.FromBase64String(encryptedDekBase64);
+        _aesKey = hsmService.DecryptData(encryptedDek);
+    }
 
     public string Encrypt(string plainText)
     {
@@ -55,6 +66,27 @@ public class AesVaultProvider
 
         using var aesGcm = new AesGcm(_aesKey, tag.Length);
         aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
+
+        // --- İSTEK KAYNAĞINI (SOURCE) TESPİT ETME ---
+        var context = _httpContextAccessor.HttpContext;
+        var ipAddress = context?.Connection?.RemoteIpAddress?.ToString() ?? "Arka Plan İşlemi / Bilinmiyor";
+        var username = context?.User?.Identity?.IsAuthenticated == true ? context.User.Identity.Name : "Sistem Anonim";
+        var requestMethod = context?.Request?.Method ?? "Bilinmiyor";
+        var requestPath = context?.Request?.Path.Value ?? "Bilinmeyen Yol";
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.AuditLogs.Add(new AuditLog 
+            {
+                Action = "SECRET_DECRYPTED",
+                Details = $"Zarf Şifreleme Çözüldü. Kaynak API: [{requestMethod}] {requestPath}",
+                IsSuccess = true,
+                Username = username,
+                IpAddress = ipAddress
+            });
+            db.SaveChanges();
+        }
 
         return Encoding.UTF8.GetString(plainBytes);
     }
