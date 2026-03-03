@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using LumenGuard.Api.Services.Crypto;
+using System.ComponentModel.DataAnnotations;
 
 namespace LumenGuard.Api.Data
 {
@@ -23,8 +24,8 @@ namespace LumenGuard.Api.Data
             base.OnModelCreating(builder);
 
             var encryptionConverter = new ValueConverter<string, string>(
-                v => _aesProvider.Encrypt(v),
-                v => _aesProvider.Decrypt(v)
+                v => v == null ? null : _aesProvider.Encrypt(v),
+                v => v == null ? null : _aesProvider.Decrypt(v)
             );
 
 
@@ -40,7 +41,9 @@ namespace LumenGuard.Api.Data
     public class VaultSecret
     {
         public int Id { get; set; }
-        public string SecretName { get; set; }
-        public string SecretValue { get; set; }
+        [Required]
+        public string SecretName { get; set; } = null!;
+        [Required]
+        public string SecretValue { get; set; } = null!;
     }
 }

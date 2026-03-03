@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "/aUPiF2l4v64E51ozpVkdNHZDwP4pwG7azhqsT6IJRYdO6EszSWORR38/aeVl31fQ0ORRbfKqYaG7Z2xQefltA==",
+  "success": true,
+  "projectFilePath": "/home/berkinmamo/LumenGuard/src/LumenGuard.Gateway/LumenGuard.Gateway.csproj",
+  "expectedPackageFiles": [
+    "/home/berkinmamo/.nuget/packages/system.io.hashing/8.0.0/system.io.hashing.8.0.0.nupkg.sha512",
+    "/home/berkinmamo/.nuget/packages/yarp.reverseproxy/2.3.0/yarp.reverseproxy.2.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}

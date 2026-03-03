@@ -59,6 +59,15 @@ builder.Services.AddOpenIddict()
     });
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLuviaFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // v0/React portun neyse buraya ekleyebilirsin
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -72,6 +81,8 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection(); 
+app.UseRouting();
+app.UseCors("AllowLuviaFrontend");
 app.UseAuthentication(); 
 app.UseAuthorization();
 app.MapControllers();

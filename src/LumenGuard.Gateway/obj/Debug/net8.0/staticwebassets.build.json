@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "QRHv7q3v3hWpneTkNtdbKrUvffhBBsSW31dZTwNyKYk=",
+  "Source": "LumenGuard.Gateway",
+  "BasePath": "_content/LumenGuard.Gateway",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
