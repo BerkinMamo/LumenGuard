@@ -92,4 +92,25 @@ app.MapControllers();
 //         EncryptedDek = Convert.ToBase64String(encryptedDek),
 //         Warning = "Bu işlem tamamlandıktan sonra bu endpoint'i Program.cs içinden SİLİN!"
 //     });});
+
+app.MapPost("/api/vault/add-secret", async (ApplicationDbContext db, string name, string value) =>
+{
+    var secret = new VaultSecret
+    {
+        SecretName = name,
+        SecretValue = value // Bu alan DbContext'te şifrelenecek şekilde ayarlandı!
+    };
+
+    db.VaultSecrets.Add(secret);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { Message = $"'{name}' başarıyla HSM korumalı olarak kaydedildi." });
+});
+
+app.MapGet("/api/vault/get-secret/{id}", async (ApplicationDbContext db, int id) =>
+{
+    var secret = await db.VaultSecrets.FindAsync(id);
+    return secret != null ? Results.Ok(secret) : Results.NotFound();
+});
+
 app.Run();

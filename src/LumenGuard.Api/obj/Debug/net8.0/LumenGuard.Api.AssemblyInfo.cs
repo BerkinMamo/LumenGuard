@@ -11,10 +11,11 @@ using System;
 using System.Reflection;
 
 [assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("5decbbaa-f201-45fd-97fc-12bd2de6f6b1")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+317254d026d15cc407f758326a5cb48cbc147745")]
 [assembly: System.Reflection.AssemblyProductAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LumenGuard.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
