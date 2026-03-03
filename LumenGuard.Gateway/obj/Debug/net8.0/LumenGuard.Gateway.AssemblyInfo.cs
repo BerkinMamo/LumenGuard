@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LumenGuard.Gateway")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ea0b49ecfb89f3b645c8de1533b82d40e4527c84")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c66e008d75ed164706e533a55bf8ecfb68e0b48c")]
 [assembly: System.Reflection.AssemblyProductAttribute("LumenGuard.Gateway")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LumenGuard.Gateway")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

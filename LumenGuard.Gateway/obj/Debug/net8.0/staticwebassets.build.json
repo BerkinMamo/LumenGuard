@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "QRHv7q3v3hWpneTkNtdbKrUvffhBBsSW31dZTwNyKYk=",
-  "Source": "LumenGuard.Gateway",
-  "BasePath": "_content/LumenGuard.Gateway",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"VNVR8RC7SWDy6a1vUpIzIz/lcNuVsmbTxfXehLF+ZHU=","Source":"LumenGuard.Gateway","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
