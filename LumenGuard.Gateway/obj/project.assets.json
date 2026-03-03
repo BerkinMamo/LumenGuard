@@ -108,11 +108,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/berkinmamo/LumenGuard/src/LumenGuard.Gateway/LumenGuard.Gateway.csproj",
+      "projectUniqueName": "/home/berkinmamo/LumenGuard/LumenGuard.Gateway/LumenGuard.Gateway.csproj",
       "projectName": "LumenGuard.Gateway",
-      "projectPath": "/home/berkinmamo/LumenGuard/src/LumenGuard.Gateway/LumenGuard.Gateway.csproj",
+      "projectPath": "/home/berkinmamo/LumenGuard/LumenGuard.Gateway/LumenGuard.Gateway.csproj",
       "packagesPath": "/home/berkinmamo/.nuget/packages/",
-      "outputPath": "/home/berkinmamo/LumenGuard/src/LumenGuard.Gateway/obj/",
+      "outputPath": "/home/berkinmamo/LumenGuard/LumenGuard.Gateway/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/berkinmamo/.nuget/NuGet/NuGet.Config"
@@ -121,6 +121,7 @@
         "net8.0"
       ],
       "sources": {
+        "/usr/lib/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -133,7 +134,13 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -155,6 +162,12 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.NETCore.App.Host.linux-x64",
+            "version": "[8.0.24, 8.0.24]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -163,7 +176,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.124/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

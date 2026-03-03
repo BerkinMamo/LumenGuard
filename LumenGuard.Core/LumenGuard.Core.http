@@ -1,0 +1,6 @@
+@LumenGuard.Core_HostAddress = http://localhost:5114
+
+GET {{LumenGuard.Core_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
