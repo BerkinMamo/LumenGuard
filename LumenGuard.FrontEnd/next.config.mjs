@@ -20,12 +20,12 @@ const nextConfig = {
       {
         // Frontend: /api/vault/customers -> Gateway: :5000/api/vault/customers
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*', 
+        destination: 'http://localhost:7194/api/:path*', 
       },
       {
         // Auth: /connect/token -> Gateway: :5000/connect/token
         source: '/connect/:path*',
-        destination: 'http://localhost:5000/connect/:path*',
+        destination: 'http://localhost:7194/connect/:path*',
       },
     ]
   },
