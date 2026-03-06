@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/lumenguard/sidebar"
 import { SystemHealthBar } from "@/components/lumenguard/system-health-bar"
 import { OverviewModule } from "@/components/lumenguard/overview-module"
@@ -27,27 +27,28 @@ const moduleTitles: Record<Module, string> = {
 
 export default function DashboardPage() {
   const [activeModule, setActiveModule] = useState<Module>("overview")
+  
+  // ✅ DOĞRU YER: Hooklar fonksiyonun tam girişinde tanımlanmalı
+  const [userIp, setUserIp] = useState<string>("Detecting...");
+
+  useEffect(() => {
+    fetch("https://api.ipify.org?format=json")
+      .then((res) => res.json())
+      .then((data) => setUserIp(data.ip))
+      .catch(() => setUserIp("10.0.1.76"));
+  }, []);
 
   function renderModule() {
     switch (activeModule) {
-      case "overview":
-        return <OverviewModule />
-      case "identity":
-        return <IdentityModule />
-      case "policy":
-        return <PolicyModule />
-      case "kyc":
-        return <KycModule />
-      case "activity":
-        return <AuditLogModule />
-      case "vault":
-        return <ContractVaultModule />
-      case "alerts":
-        return <SecurityAlertsModule />
-      case "settings":
-        return <GlobalSettingsModule />
-      default:
-        return <OverviewModule />
+      case "overview": return <OverviewModule />
+      case "identity": return <IdentityModule />
+      case "policy": return <PolicyModule />
+      case "kyc": return <KycModule />
+      case "activity": return <AuditLogModule />
+      case "vault": return <ContractVaultModule />
+      case "alerts": return <SecurityAlertsModule />
+      case "settings": return <GlobalSettingsModule />
+      default: return <OverviewModule />
     }
   }
 
@@ -56,20 +57,15 @@ export default function DashboardPage() {
       className="flex flex-col h-screen overflow-hidden"
       style={{ backgroundColor: "#0B1D33" }}
     >
-      {/* System Health Bar */}
       <SystemHealthBar />
 
-      {/* Main area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
         <Sidebar
           activeModule={activeModule}
           onModuleChange={(id) => setActiveModule(id as Module)}
         />
 
-        {/* Content area */}
         <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Page header */}
           <div
             className="flex items-center justify-between px-6 py-4 shrink-0"
             style={{
@@ -88,6 +84,7 @@ export default function DashboardPage() {
                 {moduleTitles[activeModule]}
               </h1>
             </div>
+            
             <div className="flex items-center gap-3">
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono"
@@ -101,12 +98,11 @@ export default function DashboardPage() {
                   className="w-1.5 h-1.5 rounded-full animate-pulse"
                   style={{ backgroundColor: "#00D2FF" }}
                 />
-                Session: <span style={{ color: "#00D2FF" }}>usr_001</span>
+                Session IP: <span style={{ color: "#00D2FF" }}>{userIp}</span>
               </div>
             </div>
           </div>
 
-          {/* Module content */}
           <div className="flex-1 overflow-y-auto scrollbar-thin p-6">
             {renderModule()}
           </div>

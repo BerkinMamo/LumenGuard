@@ -1,6 +1,7 @@
 using LumenGuard.Core.Data;
 using OpenIddict.Abstractions;
 using Microsoft.AspNetCore.Identity;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 public class Worker : IHostedService
 {
@@ -11,49 +12,49 @@ public class Worker : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
+        
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await context.Database.EnsureCreatedAsync();
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        // Luvia Vault Uygulamasını Kaydet
-        if (await manager.FindByClientIdAsync("luvia-vault-app") == null)
+        // İstemci Kimliği: Lumen-Guard-Dashboard olarak güncellendi
+        if (await manager.FindByClientIdAsync("Lumen-Guard-Dashboard") == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = "luvia-vault-app",
-                ClientSecret = "luvia-secret-9988",
-                DisplayName = "Luvia Vault Dashboard",
+                ClientId = "Lumen-Guard-Dashboard",
+                ClientSecret = "0812fefbf4702ddaba5193d962cb4e1334a2180e",
+                DisplayName = "Lumen Guard Security Dashboard",
                 Permissions =
-{
-    OpenIddictConstants.Permissions.Endpoints.Token,
-    OpenIddictConstants.Permissions.GrantTypes.Password,
-    OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                {
+                    Permissions.Endpoints.Token,
+                    Permissions.GrantTypes.Password,
+                    Permissions.GrantTypes.RefreshToken,
 
-    // Burası Kritik: Uygulamanın scope kullanmasına izin ver 
-    OpenIddictConstants.Permissions.Prefixes.Scope + "email",
-    OpenIddictConstants.Permissions.Prefixes.Scope + "profile",
-    OpenIddictConstants.Permissions.Prefixes.Scope + "roles",
-    OpenIddictConstants.Permissions.Prefixes.Scope + "offline_access", // Refresh token için gerekli
-    
-    // Alternatif olarak doğrudan sabitleri kullanmaya devam edebilirsin ama 'offline_access' eklemeyi unutma
-    OpenIddictConstants.Permissions.Scopes.Email,
-    OpenIddictConstants.Permissions.Scopes.Profile,
-    OpenIddictConstants.Permissions.Scopes.Roles
-}
+                    Permissions.Scopes.Email,
+                    Permissions.Scopes.Profile,
+                    Permissions.Scopes.Roles,
+                    Permissions.Prefixes.Scope + "offline_access",
+
+                    Permissions.ResponseTypes.Token
+                }
             });
         }
+
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        if (await userManager.FindByNameAsync("berkin") == null)
+        const string adminEmail = "berkinmamo@lunalux.com.tr";
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
         {
             var user = new IdentityUser
             {
-                UserName = "berkin",
-                Email = "berkin@lumenguard.com",
+                UserName = adminEmail,
+                Email = adminEmail,
                 EmailConfirmed = true
             };
-            await userManager.CreateAsync(user, "Lumen!12345");
+
+            await userManager.CreateAsync(user, "19761976qweR!");
         }
     }
 

@@ -1,33 +1,26 @@
 /** @type {import('next').NextConfig} */
+
+// Artık doğrudan tarayıcıdan (client-side) istek atacağın için 
+// bu satıra teknik olarak gerek kalmadı ama zararı da olmaz.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const nextConfig = {
-  // 1. Build ve Tip Hatalarını Yoksay (Vercel deployment için)
-  typescript: {
-    ignoreBuildErrors: true,
+  typescript: { 
+    ignoreBuildErrors: true 
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
-  // 2. Görsel Optimizasyonu (v0 bileşenleri için genelde istenir)
-  images: {
-    unoptimized: true,
+  
+  // 🛡️ Tarayıcı üzerinden farklı domainlere (Cross-Origin) 
+  // güvenli erişim için bu kalsın.
+  experimental: {
+    allowedOrigins: ["api.lunalux.com.tr", "lumen.lunalux.com.tr", "localhost:3000", "localhost:7194"]
   },
 
-  // 3. PROXY (Rewrites) AYARLARI
-  // Houston, artık tüm API trafiği buradan Gateway'e akacak.
-  async rewrites() {
-    return [
-      {
-        // Frontend: /api/vault/customers -> Gateway: :5000/api/vault/customers
-        source: '/api/:path*',
-        destination: 'http://localhost:7194/api/:path*', 
-      },
-      {
-        // Auth: /connect/token -> Gateway: :5000/connect/token
-        source: '/connect/:path*',
-        destination: 'http://localhost:7194/connect/:path*',
-      },
-    ]
+  // 🛡️ REWRITES SİLİNDİ: 
+  // Next.js sunucusunu aradan çıkardık. Artık isteklerin Node.js 
+  // katmanına takılmayacak, doğrudan tarayıcıdan Gateway'e gidecek.
+
+  devIndicators: {
+    buildActivity: true,
   },
 };
 

@@ -61,3 +61,4 @@
 /home/berkinmamo/LumenGuard/LumenGuard.Gateway/obj/Debug/net8.0/LumenGuard.Gateway.pdb
 /home/berkinmamo/LumenGuard/LumenGuard.Gateway/obj/Debug/net8.0/LumenGuard.Gateway.genruntimeconfig.cache
 /home/berkinmamo/LumenGuard/LumenGuard.Gateway/obj/Debug/net8.0/ref/LumenGuard.Gateway.dll
+/home/berkinmamo/LumenGuard/LumenGuard.Gateway/obj/Debug/net8.0/LumenGuard.Gateway.MvcApplicationPartsAssemblyInfo.cs

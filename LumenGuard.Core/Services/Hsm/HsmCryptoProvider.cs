@@ -18,7 +18,7 @@ namespace LumenGuard.Core.Services.Hsm
         public override SignatureProvider CreateForSigning(SecurityKey key, string algorithm)
         {
             // Program.cs'de tanımladığımız KeyId ile eşleşme kontrolü yapıyoruz
-            if (key.KeyId == "Luvia-HSM-Key-01")
+            if (key.KeyId == "Luvia-Key-Test")
             {
                 // Standart imzalayıcı yerine bizim özel HSM imzalayıcımızı döndürüyoruz
                 return new HsmSignatureProvider(key, algorithm, _hsmService);
@@ -33,7 +33,7 @@ namespace LumenGuard.Core.Services.Hsm
         /// </summary>
         public override bool IsSupportedAlgorithm(string algorithm, SecurityKey key)
         {
-            return base.IsSupportedAlgorithm(algorithm, key) || (key.KeyId == "Luvia-HSM-Key-01" && algorithm == SecurityAlgorithms.RsaSha256);
+            return base.IsSupportedAlgorithm(algorithm, key) || (key.KeyId == "Luvia-Key-Test" && algorithm == SecurityAlgorithms.RsaSha256);
         }
     }
 }

@@ -15,25 +15,35 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const params = new URLSearchParams({
-        username: email,
-        password: password,
-      })
+      // 🚀 KRİTİK: OpenIddict bu parametreleri 'application/x-www-form-urlencoded' formatında bekler.
+      const params = new URLSearchParams()
+      params.append("grant_type", "password")
+      params.append("username", email)
+      params.append("password", password)
+      params.append("client_id", "Lumen-Guard-Dashboard")
+      params.append("client_secret", "0812fefbf4702ddaba5193d962cb4e1334a2180e")
 
       const response = await authApi.login(params)
       
-      if (response.data.access_token) {
+      if (response.data && response.data.access_token) {
+        // 1. Middleware için güvenli kanalda Cookie set et
+        const THIRTY_MINUTES = 30 * 60; // 1800 saniye
+        document.cookie = `lumen_token=${response.data.access_token}; path=/; max-age=${THIRTY_MINUTES}; SameSite=Lax; Secure`;
+        
+        // 2. Client-side işlemler için LocalStorage mühürle
         localStorage.setItem("lumen_token", response.data.access_token)
+        
         toast.success("Identity Verified. Access Granted.")
-        router.push("/") // Dashboard'a yönlendir
+        router.push("/") // Dashboard'a uçuyoruz
       }
-    } catch (error) {
-      toast.error("Authentication Failed. Invalid credentials or HSM timeout.")
+    } catch (error: any) {
+      console.error("Auth Error:", error.response?.data || error.message)
+      toast.error("Authentication Failed. Check credentials or HSM connectivity.")
     } finally {
       setIsLoading(false)
     }
@@ -49,7 +59,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 bg-[#00D2FF]/10 rounded-full flex items-center justify-center mb-4 border border-[#00D2FF]/30">
             <ShieldCheck className="w-10 h-10 text-[#00D2FF]" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight text-white">Lumen Guard</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight text-white font-sans">Lumen Guard</CardTitle>
           <CardDescription className="text-gray-400">
             HSM-Backed Identity Portal
           </CardDescription>
@@ -61,8 +71,8 @@ export default function LoginPage() {
                 <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input 
                   type="email" 
-                  placeholder="Security Email" 
-                  className="pl-10 bg-[#0B1D33] border-gray-700 text-white focus:border-[#00D2FF]"
+                  placeholder="berkinmamo@lunalux.com.tr" 
+                  className="pl-10 bg-[#0B1D33] border-gray-700 text-white focus:border-[#00D2FF] outline-none"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -74,8 +84,8 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input 
                   type="password" 
-                  placeholder="Encryption Key (Password)" 
-                  className="pl-10 bg-[#0B1D33] border-gray-700 text-white focus:border-[#00D2FF]"
+                  placeholder="Encryption Key" 
+                  className="pl-10 bg-[#0B1D33] border-gray-700 text-white focus:border-[#00D2FF] outline-none"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -84,7 +94,7 @@ export default function LoginPage() {
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-[#0B1D33] font-bold"
+              className="w-full bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-[#0B1D33] font-bold transition-all duration-300"
               disabled={isLoading}
             >
               {isLoading ? "Decrypting Session..." : "Verify Identity"}

@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using LumenGuard.Core.Data;
 using LumenGuard.Core.Models;
 using LumenGuard.Core.Services.Hsm;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LumenGuard.Core.Controllers;
 
@@ -35,7 +38,6 @@ public class VaultController : ControllerBase
             .Select(c => new 
             {
                 c.Id,
-                // UI'da yöneticinin kiminle işlem yaptığını bilmesi için isimleri mühürsüz gönderiyoruz
                 FullName = c.FullName_Enc, 
                 c.Status,
                 c.RiskLevel,
@@ -61,7 +63,7 @@ public class VaultController : ControllerBase
         return Ok(new
         {
             customer.Id,
-            customer.FullName_Enc, // Otomatik deşifre
+            customer.FullName_Enc,
             customer.Status,
             Details = new 
             {
@@ -75,13 +77,13 @@ public class VaultController : ControllerBase
         });
     }
 
-    // EKSİK OLAN AUDIT LOG ENDPOINT'İ
     [HttpGet("audit-logs")]
     public async Task<IActionResult> GetAuditLogs()
     {
         var logs = await _context.AuditLogs
             .OrderByDescending(l => l.Timestamp)
             .ToListAsync();
+
         return Ok(logs);
     }
 
@@ -94,7 +96,6 @@ public class VaultController : ControllerBase
         var oldStatus = customer.Status;
         customer.Status = newStatus;
 
-        // GÜVENLİK İÇİN AUDIT LOG KAYDI
         _context.AuditLogs.Add(new AuditLog {
             Action = "KYC_STATUS_CHANGE",
             Timestamp = DateTime.UtcNow,
@@ -102,6 +103,7 @@ public class VaultController : ControllerBase
         });
 
         await _context.SaveChangesAsync();
+
         return Ok(new { Message = "Status updated and logged." });
     }
 
@@ -109,8 +111,10 @@ public class VaultController : ControllerBase
     public async Task<IActionResult> SearchByExternalRef([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return BadRequest();
+
         var searchHash = _luvia.ComputeBlindIndex(query);
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.ExternalRef_Hash == searchHash);
+
         return customer == null ? NotFound() : Ok(new { customer.Id, customer.Status });
     }
 }

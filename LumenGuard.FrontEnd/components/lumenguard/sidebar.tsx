@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EmergencyLockdownModal } from "@/components/lumenguard/emergency-lockdown-modal"
+import { authApi } from "@/lib/api"
 
 interface NavItem {
   id: string
@@ -68,6 +69,18 @@ interface SidebarProps {
 export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [showLockdown, setShowLockdown] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleSecureLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    try {
+      await authApi.logout()
+    } catch (error) {
+      console.error("Lumen Guard: Logout failed.", error)
+      window.location.href = "/login"
+    }
+  }
 
   return (
     <>
@@ -250,6 +263,7 @@ export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {
           </div>
         )}
         <button
+          onClick={handleSecureLogout}
           className={cn(
             "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
             collapsed && "justify-center"

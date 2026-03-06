@@ -14,7 +14,7 @@ public class AesVaultProvider
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AesVaultProvider(
-        HsmService hsmService, 
+        ILuviaHsmService hsmService, 
         IConfiguration config, 
         IServiceScopeFactory scopeFactory,
         IHttpContextAccessor httpContextAccessor)

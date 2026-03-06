@@ -5,108 +5,135 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using System.Security.Authentication;
 using OpenIddict.Abstractions;
-using LumenGuard.Core;
+using Polly;
+using Polly.Extensions.Http;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Threading.Tasks;
+using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Veritabanı Yapılandırması (PostgreSQL + OpenIddict Store)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ConfigureHttpsDefaults(httpsOptions =>
+    {
+        httpsOptions.SslProtocols = SslProtocols.Tls13;
+    });
+});
+
+var retryPolicy = HttpPolicyExtensions
+    .HandleTransientHttpError()
+    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+var hsmService = new HsmService(builder.Configuration);
+builder.Services.AddSingleton<ILuviaHsmService>(hsmService);
+builder.Services.AddSingleton<AesVaultProvider>();
+
+builder.Services.AddHttpClient("SeaweedFSClient")
+    .AddPolicyHandler(retryPolicy);
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options => {
     options.UseNpgsql(connectionString);
     options.UseOpenIddict();
 });
 
-// 2. Kimlik Yönetimi (Identity)
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
-builder.Services.AddHttpContextAccessor();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api") || 
+            context.Request.Path.StartsWithSegments("/connect"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        }
+        else
+        {
+            context.Response.Redirect(context.RedirectUri);
+        }
+        return Task.CompletedTask;
+    };
+});
 
-// 3. HSM Servis Kayıtları (Singleton - Kurumsal Performans)
-// Nesneyi bir kez oluşturup hem interface hem de somut sınıf olarak kaydediyoruz
-var hsmService = new HsmService(builder.Configuration);
-builder.Services.AddSingleton<ILuviaHsmService>(hsmService);
-builder.Services.AddSingleton<HsmService>(hsmService); 
-builder.Services.AddSingleton<AesVaultProvider>();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+});
 
-// 4. OpenIddict Sunucu Yapılandırması (HSM İmzalı Tokenlar)
 builder.Services.AddOpenIddict()
     .AddCore(options => {
         options.UseEntityFrameworkCore().UseDbContext<ApplicationDbContext>();
     })
     .AddServer(options => {
-        // Endpoint rotaları
-        options.SetTokenEndpointUris("/connect/token")
-               .SetAuthorizationEndpointUris("/connect/authorize");
-
+        options.SetTokenEndpointUris("/connect/token");
         options.AllowPasswordFlow().AllowRefreshTokenFlow();
+        options.SetAccessTokenLifetime(TimeSpan.FromMinutes(30)); 
 
-        // HSM RSA Anahtar Parametreleri (Luvia Master Key)
-        var rsaParameters = new RSAParameters
-        {
+        var rsaParameters = new RSAParameters {
             Modulus = Convert.FromBase64String("/MSf5HFIaNj2oSoaMB/HZucvSQwLbk521AGT+fYgsNZMTc97OMaX9uVq05zHyc0ytTagqgKSiQ9sf/kW720leVo35kA1EW6FLArrk/krPYMZUsgOJDb4o9/26TvcWFagJuz+MP6Wx8if/F819tNU7xGEUbdPFIn3+a8nGIQVHTraYYqOuOH9quMsWXRcTbXKouKcTc6kTU37I5RG57bKFSf7F3kQGsSJAaU2BE31njJL52FulZeBLgEzRxwNYNRuTydUNIuDk4hqnu+y+8FD5IvaouIElMv7gDwYGHBkh0o+uL3bWNXeYmCyYKn0M1IN2r5690CC++9uc4Y/1Chi7Q=="), 
             Exponent = Convert.FromBase64String("AQAB") 
         };
-
-        var hsmSecurityKey = new RsaSecurityKey(rsaParameters) { KeyId = "Luvia-HSM-Key-01" };
-        
-        // HSM tabanlı imzalama fabrikasını bağlıyoruz (Tokenlar HSM ile mühürlenir)
+        var hsmSecurityKey = new RsaSecurityKey(rsaParameters) { KeyId = "Luvia-Key-Test" };
         hsmSecurityKey.CryptoProviderFactory = new HsmCryptoProviderFactory(hsmService);
 
-        options.RegisterScopes(
-            OpenIddictConstants.Scopes.Email,
-            OpenIddictConstants.Scopes.Profile,
-            OpenIddictConstants.Scopes.Roles,
-            "offline_access"
-        );
-
         options.AddSigningCredentials(new SigningCredentials(hsmSecurityKey, SecurityAlgorithms.RsaSha256));
-        options.AddDevelopmentEncryptionCertificate();
-
-        // Middleware üzerinden akışa izin ver (AuthorizationController için şart)
-        options.UseAspNetCore().EnableTokenEndpointPassthrough();
-    });
-
-// 5. API, JSON ve CORS Ayarları
-builder.Services.AddControllers()
-    .AddJsonOptions(options => {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; // C# Property isimlerini (AuditLog, FullName vb.) korur
-    });
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowLuviaFrontend", policy =>
+        options.AddDevelopmentEncryptionCertificate(); 
+        
+        options.UseAspNetCore()
+               .EnableTokenEndpointPassthrough()
+               .DisableTransportSecurityRequirement();
+    })
+    .AddValidation(options =>
     {
-        policy.WithOrigins("http://localhost:3000") // Frontend portu
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // Auth token'lar için şart
+        options.UseLocalServer();
+        options.UseAspNetCore();
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new() { Title = "LumenGuard Vault API", Version = "v1" });
+});
+
+builder.Services.AddControllers();
+
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowLuviaFrontend", policy => {
+        policy.WithOrigins("https://localhost:3000", "https://lumen.lunalux.com.tr")
+              .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
-builder.Services.AddHostedService<Worker>(); // Background KYC/Audit işlemleri
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
-// Pipeline Yapılandırması
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Luvia API v1"));
 }
 
 app.UseHttpsRedirection(); 
 app.UseRouting();
-
-// CORS Middleware'i Routing ve Auth arasında olmalı
 app.UseCors("AllowLuviaFrontend"); 
 
 app.UseAuthentication(); 
 app.UseAuthorization();
 
-app.MapControllers(); // VaultController'daki endpoint'leri aktif eder
+app.MapControllers(); 
 
 app.Run();

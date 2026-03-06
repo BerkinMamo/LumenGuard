@@ -1,58 +1,59 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using LumenGuard.Core.Services.Crypto;
 using LumenGuard.Core.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace LumenGuard.Core.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    // 🛡️ MÜHÜR: IdentityUser tipini açıkça belirterek UserManager servisinin çözülmesini sağlıyoruz.
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         private readonly AesVaultProvider _aesProvider;
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, AesVaultProvider aesProvider)
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options, 
+            AesVaultProvider aesProvider) // Singleton provider buraya enjekte edilir
             : base(options)
         {
             _aesProvider = aesProvider;
         }
 
-        // --- Yeni KYC ve Customer Tabloları ---
+        // --- Luvia Vault Tabloları ---
         public DbSet<Customer> Customers { get; set; }
         public DbSet<KycDocument> KycDocuments { get; set; }
         public DbSet<KycDetail> KycDetails { get; set; }
-        
-        // Mevcut AuditLog yapısını koruyoruz
         public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            // Identity tablolarını (AspNetUsers vb.) oluşturur
+            // Identity tablolarını (AspNetUsers vb.) mühürle
             base.OnModelCreating(builder);
 
             // --- Şifreleme Dönüştürücüsü (ValueConverter) ---
-            // Bu converter'ı Luvia/AES ile şifrelenecek tüm modellere uygulayacağız
+            // Veri tabanına giderken HSM/AES ile şifreler, gelirken çözer.
             var encryptionConverter = new ValueConverter<string, string>(
-            v => v == null ? string.Empty : _aesProvider.Encrypt(v), // null ise boş string dön
-            v => v == null ? string.Empty : _aesProvider.Decrypt(v)
+                v => string.IsNullOrEmpty(v) ? v : _aesProvider.Encrypt(v),
+                v => string.IsNullOrEmpty(v) ? v : _aesProvider.Decrypt(v)
             );
 
             // --- Customer Yapılandırması ---
             builder.Entity<Customer>(entity =>
             {
-                entity.HasIndex(e => e.ExternalRef_Hash).IsUnique(); // Blind Index Arama
-                entity.HasIndex(e => e.IdentityUserId); // Login Eşleşmesi
+                entity.HasIndex(e => e.ExternalRef_Hash).IsUnique(); 
+                entity.HasIndex(e => e.IdentityUserId);
                 
-                // FullName_Enc alanını otomatik şifrele
+                // Hassas veriyi otomatik mühürle
                 entity.Property(e => e.FullName_Enc).HasConversion(encryptionConverter);
             });
 
             // --- KycDetail Yapılandırması ---
             builder.Entity<KycDetail>(entity =>
             {
-                entity.HasIndex(e => e.Email_Hash); // Blind Index Arama
+                entity.HasIndex(e => e.Email_Hash);
                 
-                // Şifrelenecek Alanlar (ValueConverter Uygulaması)
+                // Tüm hassas kişisel veriler (PII) şifreleme katmanından geçer
                 entity.Property(e => e.DateOfBirth_Enc).HasConversion(encryptionConverter);
                 entity.Property(e => e.PlaceOfBirth_Enc).HasConversion(encryptionConverter);
                 entity.Property(e => e.Gender_Enc).HasConversion(encryptionConverter);
@@ -65,7 +66,7 @@ namespace LumenGuard.Core.Data
             // --- KycDocument Yapılandırması ---
             builder.Entity<KycDocument>(entity =>
             {
-                // Dosya anahtarlarını şifreleyerek sakla
+                // Belge anahtarlarını DB'de mühürlü sakla
                 entity.Property(e => e.AesKey_Wrapped).HasConversion(encryptionConverter);
             });
         }
